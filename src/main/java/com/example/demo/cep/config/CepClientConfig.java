@@ -1,4 +1,4 @@
-package com.example.demo.cep.client;
+package com.example.demo.cep.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -17,6 +17,7 @@ public class CepClientConfig {
         var requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setReadTimeout((int) timeout.toMillis());
         requestFactory.setConnectTimeout((int) timeout.toMillis());
+
         return RestClient.builder()
                 .baseUrl(baseUrl)
                 .requestFactory(requestFactory)

@@ -32,10 +32,6 @@ Tecnologias principais:
 - JUnit 5 + Mockito
 - Maven (via Maven Wrapper do projeto)
 
-> Observação sobre warnings ao rodar `./mvnw` no Java 25:
-> - O Maven 4 usa o JLine com acesso nativo. Para evitar o warning "Use --enable-native-access=ALL-UNNAMED", o projeto já inclui `--enable-native-access=ALL-UNNAMED` em `.mvn/jvm.config`.
-> - Ainda pode aparecer warning de `sun.misc.Unsafe` vindo de bibliotecas de terceiros (ex.: Guava), que não é controlado pelo código da aplicação.
-
 
 ## Arquitetura e responsabilidades
 - `CepController` (camada web): valida entrada e expõe o endpoint.
@@ -78,6 +74,7 @@ classDiagram
 
   class CepController {
     +ResponseEntity~CepInfo~ buscarCep(String cep)
+    -String normalizarCep(String cep)
   }
 
   class CepService {
@@ -91,10 +88,12 @@ classDiagram
   }
 
   class CepClient {
-    +CepClient(String baseUrl, Duration timeout)
-    +CepClient(RestClient restClient)
     +CepResponse buscarCep(String cep)
     -String sanitizeCep(String cep)
+  }
+
+  class CepClientConfig <<config>> {
+    +RestClient restClient()
   }
 
   class GlobalExceptionHandler {
@@ -111,11 +110,11 @@ classDiagram
   CepController --> CepService : usa
   CepService --> CepClientPort : usa
   CepClient ..|> CepClientPort
+  CepClientConfig --> CepClient : configura
 
   CepClient --> CepResponse : retorna
   CepService --> CepInfo : retorna
   GlobalExceptionHandler --> ErrorResponse : retorna
-
 ```
 
 ### Diagrama de sequência (GET /ceps/{cep})
@@ -125,21 +124,21 @@ sequenceDiagram
   actor Cliente
   participant C as CepController
   participant S as CepService
-  participant CP as CepClientPort
-  participant V as ViaCEP (API externa)
+  participant CL as CepClient
+  participant API as ViaCEP (API externa)
 
   Cliente->>C: GET /ceps/{cep}
-  C->>C: validarCep(cep)
+  C->>C: validar/normalizar CEP
 
   alt CEP inválido
     C-->>Cliente: 400 (ErrorResponse)
     note over C: IllegalArgumentException
   else CEP válido
     C->>S: obterCep(cep)
-    S->>CP: buscarCep(cep)
-    CP->>V: GET /{cepSanitizado}/json
-    V-->>CP: 200 (CepResponse)
-    CP-->>S: CepResponse
+    S->>CL: buscarCep(cep)
+    CL->>API: GET /{cepSanitizado}/json
+    API-->>CL: 200 (CepResponse)
+    CL-->>S: CepResponse
     S-->>C: CepInfo
     C-->>Cliente: 200 (CepInfo)
   end
