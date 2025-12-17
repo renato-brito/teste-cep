@@ -9,7 +9,7 @@ SUMÁRIO
 - Arquitetura e responsabilidades
 - Endpoints
 - DTOs e mapeamento
-- Diagramas (PlantUML)
+- Diagramas (Mermaid)
 - Testes e cobertura
 - Boas práticas aplicadas (SOLID, DRY)
 - Melhorias sugeridas e padrões de projeto
@@ -69,44 +69,82 @@ Resposta (200):
 - `CepInfo` — DTO público retornado pela API do serviço (conteúdo reduzido do `CepResponse`).
 
 
-## Diagramas (PlantUML)
-Incluí diagramas em PlantUML diretamente no README para fácil visualização/edição.
+## Diagramas (Mermaid)
 
-Diagrama de classes (simplificado):
+### Diagrama de classes
 ```mermaid
 classDiagram
-package com.example.demo.cep {
-  class CepController
-  class CepService
-  class CepClient
-  class CepResponse
-  class CepInfo
+  direction LR
 
-  CepController -> CepService : obterCep(cep)
-  CepService -> CepClient : buscarCep(cep)
-  CepService -> CepInfo : mapear(CepResponse)
-  CepClient --> CepResponse
-}
+  class CepController {
+    +ResponseEntity~CepInfo~ buscarCep(String cep)
+  }
+
+  class CepService {
+    +CepInfo obterCep(String cep)
+    -CepInfo mapear(CepResponse response)
+  }
+
+  class CepClientPort {
+    <<interface>>
+    +CepResponse buscarCep(String cep)
+  }
+
+  class CepClient {
+    +CepClient(String baseUrl, Duration timeout)
+    +CepClient(RestClient restClient)
+    +CepResponse buscarCep(String cep)
+    -String sanitizeCep(String cep)
+  }
+
+  class GlobalExceptionHandler {
+    +ResponseEntity~ErrorResponse~ handleIllegalArgument(IllegalArgumentException, WebRequest)
+    +ResponseEntity~ErrorResponse~ handleConstraintViolation(ConstraintViolationException, WebRequest)
+    +ResponseEntity~Void~ handleNoResourceFound(NoResourceFoundException)
+    +ResponseEntity~ErrorResponse~ handleGeneric(Exception, WebRequest)
+  }
+
+  class CepInfo
+  class CepResponse
+  class ErrorResponse
+
+  CepController --> CepService : usa
+  CepService --> CepClientPort : usa
+  CepClient ..|> CepClientPort
+
+  CepClient --> CepResponse : retorna
+  CepService --> CepInfo : retorna
+  GlobalExceptionHandler --> ErrorResponse : retorna
+
 ```
 
-Diagrama de sequência (fluxo GET /ceps/{cep}):
+### Diagrama de sequência (GET /ceps/{cep})
 ```mermaid
 sequenceDiagram
-actor Cliente
-participant "CepController" as C
-participant "CepService" as S
-participant "CepClient" as CL
-participant "ViaCEP / API externa" as API
+  autonumber
+  actor Cliente
+  participant C as CepController
+  participant S as CepService
+  participant CP as CepClientPort
+  participant V as ViaCEP (API externa)
 
-Cliente -> C: GET /ceps/04842-010
-C -> S: obterCep("04842-010")
-S -> CL: buscarCep("04842-010")
-CL -> API: GET /04842010/json
-API --> CL: 200 JSON (CepResponse)
-CL --> S: CepResponse
-S --> C: CepInfo
-C --> Cliente: 200 JSON (CepInfo)
+  Cliente->>C: GET /ceps/{cep}
+  C->>C: validarCep(cep)
+
+  alt CEP inválido
+    C-->>Cliente: 400 (ErrorResponse)
+    note over C: IllegalArgumentException
+  else CEP válido
+    C->>S: obterCep(cep)
+    S->>CP: buscarCep(cep)
+    CP->>V: GET /{cepSanitizado}/json
+    V-->>CP: 200 (CepResponse)
+    CP-->>S: CepResponse
+    S-->>C: CepInfo
+    C-->>Cliente: 200 (CepInfo)
+  end
 ```
+
 
 ## Testes e cobertura
 O projeto possui testes unitários para `CepClient`, `CepService` e `CepController`, além de um teste de integração.
