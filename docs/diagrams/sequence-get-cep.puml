@@ -1,0 +1,17 @@
+@startuml
+actor Cliente
+participant "CepController" as C
+participant "CepService" as S
+participant "CepClient" as CL
+participant "ViaCEP / API externa" as API
+
+Cliente -> C: GET /ceps/04842-010
+C -> S: obterCep("04842-010")
+S -> CL: buscarCep("04842-010")
+CL -> API: GET /04842010/json
+API --> CL: 200 JSON (CepResponse)
+CL --> S: CepResponse
+S --> C: CepInfo
+C --> Cliente: 200 JSON (CepInfo)
+@enduml
+

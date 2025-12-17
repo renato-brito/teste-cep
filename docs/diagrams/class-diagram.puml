@@ -1,0 +1,60 @@
+@startuml
+' Diagrama de classes (alto nível)
+' Objetivo: mostrar as principais classes e dependências do fluxo de consulta de CEP.
+
+' Observação:
+' - Este diagrama foi escrito para funcionar mesmo quando o Graphviz/dot não estiver instalado.
+' - Por isso, usamos "layout smetana" (layout interno do PlantUML) em vez do layout padrão.
+
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+hide circle
+hide empty methods
+hide empty fields
+
+' Usa o motor de layout interno do PlantUML (não precisa do dot/Graphviz)
+!pragma layout smetana
+
+package "com.example.demo.cep.controller" {
+  class CepController
+}
+
+package "com.example.demo.cep.service" {
+  class CepService
+}
+
+package "com.example.demo.cep.client" {
+  interface CepClientPort
+  class CepClient
+  class CepClientConfig
+}
+
+package "com.example.demo.cep.dto" {
+  class CepInfo
+  class CepResponse
+}
+
+package "com.example.demo.cep.exception" {
+  class GlobalExceptionHandler
+  class CepNotFoundException
+  class InvalidCepException
+}
+
+' Dependências principais (fluxo get CEP)
+CepController --> CepService : chama
+CepService --> CepClientPort : consulta
+CepClient ..|> CepClientPort
+CepClientConfig --> CepClient : cria
+
+' DTOs
+CepClient --> CepResponse : mapeia
+CepService --> CepInfo : retorna
+
+' Exceções
+CepController ..> InvalidCepException : lança
+CepService ..> CepNotFoundException : lança
+
+GlobalExceptionHandler ..> InvalidCepException : trata
+GlobalExceptionHandler ..> CepNotFoundException : trata
+
+@enduml
