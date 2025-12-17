@@ -73,34 +73,25 @@ classDiagram
   direction LR
 
   class CepController {
-    +buscarCep(cep)
-    -validarCep(cep)
+    +buscarCep(String cep)
   }
 
   class CepService {
-    +obterCep(cep)
-    -mapear(response)
+    +obterCep(String cep)
   }
 
   class CepClientPort {
-    +buscarCep(cep)
+    <<interface>>
+    +buscarCep(String cep)
   }
 
   class CepClient {
-    +buscarCep(cep)
-    -sanitizeCep(cep)
+    +buscarCep(String cep)
   }
 
-  class CepClientConfig {
-    +restClient(baseUrl, timeout)
-  }
+  class CepClientConfig
 
-  class GlobalExceptionHandler {
-    +handleIllegalArgument(ex)
-    +handleConstraintViolation(ex)
-    +handleNoResourceFound(ex)
-    +handleGeneric(ex)
-  }
+  class GlobalExceptionHandler
 
   class CepInfo
   class CepResponse
