@@ -73,34 +73,33 @@ classDiagram
   direction LR
 
   class CepController {
-    +ResponseEntity~CepInfo~ buscarCep(String cep)
-    -String normalizarCep(String cep)
+    +buscarCep(cep)
+    -validarCep(cep)
   }
 
   class CepService {
-    +CepInfo obterCep(String cep)
-    -CepInfo mapear(CepResponse response)
+    +obterCep(cep)
+    -mapear(response)
   }
 
   class CepClientPort {
-    <<interface>>
-    +CepResponse buscarCep(String cep)
+    +buscarCep(cep)
   }
 
   class CepClient {
-    +CepResponse buscarCep(String cep)
-    -String sanitizeCep(String cep)
+    +buscarCep(cep)
+    -sanitizeCep(cep)
   }
 
-  class CepClientConfig <<config>> {
-    +RestClient restClient()
+  class CepClientConfig {
+    +restClient(baseUrl, timeout)
   }
 
   class GlobalExceptionHandler {
-    +ResponseEntity~ErrorResponse~ handleIllegalArgument(IllegalArgumentException, WebRequest)
-    +ResponseEntity~ErrorResponse~ handleConstraintViolation(ConstraintViolationException, WebRequest)
-    +ResponseEntity~Void~ handleNoResourceFound(NoResourceFoundException)
-    +ResponseEntity~ErrorResponse~ handleGeneric(Exception, WebRequest)
+    +handleIllegalArgument(ex)
+    +handleConstraintViolation(ex)
+    +handleNoResourceFound(ex)
+    +handleGeneric(ex)
   }
 
   class CepInfo
