@@ -81,7 +81,6 @@ classDiagram
   }
 
   class CepClientPort {
-    <<interface>>
     +buscarCep(String cep)
   }
 
