@@ -73,8 +73,8 @@ Resposta (200):
 Incluí diagramas em PlantUML diretamente no README para fácil visualização/edição.
 
 Diagrama de classes (simplificado):
-```
-@startuml
+```mermaid
+classDiagram
 package com.example.demo.cep {
   class CepController
   class CepService
@@ -87,12 +87,11 @@ package com.example.demo.cep {
   CepService -> CepInfo : mapear(CepResponse)
   CepClient --> CepResponse
 }
-@enduml
 ```
 
 Diagrama de sequência (fluxo GET /ceps/{cep}):
-```
-@startuml
+```mermaid
+sequenceDiagram
 actor Cliente
 participant "CepController" as C
 participant "CepService" as S
@@ -107,7 +106,6 @@ API --> CL: 200 JSON (CepResponse)
 CL --> S: CepResponse
 S --> C: CepInfo
 C --> Cliente: 200 JSON (CepInfo)
-@enduml
 ```
 
 ## Testes e cobertura
